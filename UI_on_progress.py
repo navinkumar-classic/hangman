@@ -1,18 +1,23 @@
 import random
 import pygame
+import os
 pygame.font.init()
 
 WORDPOOL = ["tree","basket","apple","aeroplane"] # well list of all words that is randomly selected for the question
 NUM_APPEAR = 2 # the number of letters that show up at the start of the game(idk man makes the game easier)
 NUM_ATTEMPT = 3
-WIN_TEXT = "Well u won!!"
+WIN_TEXT = "Gotcha!!"
 LOSE_TEXT = "YOU ARE HANGED!!!"
 
 WIDTH,HEIGHT = 800,600
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 FPS = 60
-font = pygame.font.SysFont('Comic Sans MS',50)
+high_streak = 0
+font = pygame.font.SysFont('Courier',33)
+bg = pygame.image.load(os.path.join('hangman.png'))
+bg_toscale = pygame.transform.scale(bg,(WIDTH,HEIGHT))
+
 
 SCREEN = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Hangman!")
@@ -45,24 +50,30 @@ def filler(ans,puzzle,inp):
         bool = True
     return puzzle,bool
 
-def draw(puzzle,win):
+def draw(puzzle,win,high_streak):
 
     SCREEN.fill(WHITE)
+    SCREEN.blit(bg_toscale,(0,0))
 
     hm = ' '.join(puzzle)
     text = font.render(hm,1,BLACK)
-    SCREEN.blit(text,(400,240))
+    SCREEN.blit(text,(400,210))
+
+    score = "Highest Streak: " + str(high_streak)
+    score_txt = font.render(score,1,BLACK)
+    SCREEN.blit(score_txt,(400,375))
+    
 
     if win != 0:
         if win == 2: win_text = WIN_TEXT
         elif win == 1: win_text = LOSE_TEXT
 
         win_text_render = font.render(win_text,1,BLACK)
-        SCREEN.blit(win_text_render,(275,475)) 
+        SCREEN.blit(win_text_render,(400,500)) 
 
     pygame.display.update()
     
-def main():
+def main(high_streak):
 
     clock = pygame.time.Clock()
     run = True
@@ -87,20 +98,23 @@ def main():
         
         if '_' not in puzzle:
             win = 2
-            draw(puzzle,win)
+            draw(puzzle,win,high_streak)
             pygame.time.delay(2000)
             run = False
+            high_streak += 1
 
-        if atem == NUM_ATTEMPT:
+        elif atem == NUM_ATTEMPT:
             win = 1
-            draw(puzzle,win)
+            draw(puzzle,win,high_streak)
             pygame.time.delay(2000)
             run = False
+            high_streak = 0
 
 
-        draw(puzzle,win)
+        draw(puzzle,win,high_streak)
     
-    main()
+    main(high_streak)
 
 
-main()
+main(high_streak)
+
