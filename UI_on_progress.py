@@ -5,7 +5,7 @@ pygame.font.init()
 
 WORDPOOL = ["tree","basket","apple","aeroplane"] # well list of all words that is randomly selected for the question
 NUM_APPEAR = 2 # the number of letters that show up at the start of the game(idk man makes the game easier)
-NUM_ATTEMPT = 3
+NUM_ATTEMPT = 6
 WIN_TEXT = "Gotcha!!"
 LOSE_TEXT = "YOU ARE HANGED!!!"
 
@@ -14,13 +14,30 @@ WHITE = (255,255,255)
 BLACK = (0,0,0)
 FPS = 60
 high_streak = 0
+
 font = pygame.font.SysFont('Courier',33)
 bg = pygame.image.load(os.path.join('hangman.png'))
 bg_toscale = pygame.transform.scale(bg,(WIDTH,HEIGHT))
+start = pygame.image.load(os.path.join('hangman_start.png'))
+start_scale = pygame.transform.scale(start,(WIDTH,HEIGHT))
+menu = pygame.image.load(os.path.join('hangman_music.png'))
+menu_scale = pygame.transform.scale(menu,(WIDTH,HEIGHT))
 
+start_menu = 0 #0 is start menu , 1 is game , 2 is menu
 
 SCREEN = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Hangman!")
+
+
+def sprite_loader():
+    hangman_sprites = []
+    for i in range(0,7):
+        path = "hangman" + str(i) + ".png"
+        sprite = pygame.image.load(os.path.join('images' , path))
+        sprite_scale = pygame.transform.scale(sprite,(250,250))
+        hangman_sprites.append(sprite_scale)
+    
+    return hangman_sprites
 
 def intializer(): 
     word = random.choice(WORDPOOL)
@@ -50,7 +67,7 @@ def filler(ans,puzzle,inp):
         bool = True
     return puzzle,bool
 
-def draw(puzzle,win,high_streak):
+def draw(puzzle,win,high_streak,sprites,spr):
 
     SCREEN.fill(WHITE)
     SCREEN.blit(bg_toscale,(0,0))
@@ -70,51 +87,99 @@ def draw(puzzle,win,high_streak):
 
         win_text_render = font.render(win_text,1,BLACK)
         SCREEN.blit(win_text_render,(400,500)) 
+    
+    SCREEN.blit(sprites[spr],(50,200))
+
+    pygame.display.update()
+
+def draw_start():
+
+    SCREEN.blit(start_scale,(0,0))
+
+    pygame.display.update()
+
+def draw_menu():
+
+    SCREEN.blit(menu_scale,(0,0))
 
     pygame.display.update()
     
-def main(high_streak):
+def main(high_streak,start_menu):
 
     clock = pygame.time.Clock()
     run = True
     atem = 0
+    spr = 0
     ans,puzzle = intializer()
     a = '@'
     win = 0
+    sprites = sprite_loader()
 
     while run:
         clock.tick(60)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        if start_menu == 0:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.quit()
+                    
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        start_menu = 1
+            
+            draw_start()
+
+        if start_menu == 2:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.quit()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        start_menu = 1
+                    if event.key == pygame.K_ESCAPE:
+                        run = False
+                        pygame.quit()
+                        
+            draw_menu()
+
+        if start_menu == 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.quit()
+
+                if event.type == pygame.KEYDOWN:
+                    a = pygame.key.name(event.key)
+                    if a == 'escape': 
+                        start_menu = 2
+                    else:atem += 1
+                    puzzle,bool = filler(ans,puzzle,a)
+                    if bool == False: spr += 1
+
+            
+
+            
+            if '_' not in puzzle:
+                win = 2
+                draw(puzzle,win,high_streak,sprites,spr)
+                pygame.time.delay(2000)
                 run = False
-                pygame.quit()
+                high_streak += 1
 
-            if event.type == pygame.KEYDOWN:
-                a = pygame.key.name(event.key)
-                atem += 1
-
-        puzzle,bool = filler(ans,puzzle,a)
-        
-        if '_' not in puzzle:
-            win = 2
-            draw(puzzle,win,high_streak)
-            pygame.time.delay(2000)
-            run = False
-            high_streak += 1
-
-        elif atem == NUM_ATTEMPT:
-            win = 1
-            draw(puzzle,win,high_streak)
-            pygame.time.delay(2000)
-            run = False
-            high_streak = 0
+            elif spr == NUM_ATTEMPT:
+                win = 1
+                draw(puzzle,win,high_streak,sprites,spr)
+                pygame.time.delay(2000)
+                run = False
+                high_streak = 0
 
 
-        draw(puzzle,win,high_streak)
+            draw(puzzle,win,high_streak,sprites,spr)
     
-    main(high_streak)
+    main(high_streak,start_menu)
 
 
-main(high_streak)
-
+main(high_streak,start_menu)
